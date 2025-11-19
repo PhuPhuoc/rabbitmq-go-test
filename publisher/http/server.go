@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
@@ -37,15 +38,26 @@ func (s *HTTPServer) handlePublish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Đọc raw body để debug
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read body", http.StatusBadRequest)
+		logrus.Errorf("Failed to read body: %v", err)
+		return
+	}
+	logrus.Infof("Raw body: %s", string(bodyBytes))
+
 	var req PublishRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
+	err = json.Unmarshal(bodyBytes, &req)
 	if err != nil {
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		logrus.Errorf("JSON decode error: %v, body: %s", err, string(bodyBytes))
 		return
 	}
 
 	if req.Message == "" {
 		http.Error(w, "Message is required", http.StatusBadRequest)
+		logrus.Error("Message is required")
 		return
 	}
 

@@ -35,8 +35,6 @@ func (q *RabbitConfig) setupChannelAndQueue() error {
 	if err != nil {
 		return fmt.Errorf("failed to open a channel: %w", err)
 	}
-	defer ch.Close()
-
 	q.Channel = ch
 
 	// Setup queue
